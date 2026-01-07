@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:tubes/views/home/home_content.dart';
 import 'home_content.dart';
-import 'lapor_page.dart';
-import 'tinjauan_page.dart';
-import 'profile_page.dart';
-import 'notif_page.dart';
-import 'login_page.dart';
+import '../lapor/lapor_page.dart';
+import '../lapor/tinjauan_page.dart';
+import '../notif_page.dart';
+import '../auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,7 +20,6 @@ class _HomePageState extends State<HomePage> {
     HomeContent(),
     LaporPage(),
     TinjauanPage(),
-    ProfilePage(),
   ];
 
   @override
@@ -79,9 +78,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
               icon: Icon(Icons.edit), label: 'Lapor'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.assignment), label: 'Tinjauan'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Profil'),
+              icon: Icon(Icons.assignment), label: 'Feedback'),
         ],
       ),
     );

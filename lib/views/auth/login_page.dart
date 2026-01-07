@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart'; // Sesuaikan path import ini
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,6 +10,46 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _obscure = true;
+  bool _isLoading = false; // Status loading untuk tombol
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+
+  void login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email atau password tidak boleh kosong')),
+      );
+      return;
+    }
+
+    // Aktifkan indikator loading
+    setState(() => _isLoading = true);
+
+    try {
+      // Memanggil fungsi login dari API Service
+      bool success = await _authService.login(email, password);
+
+      if (success) {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Gagal! Email atau password salah.')),
+        );
+      }
+    } finally {
+      // Matikan indikator loading meski berhasil atau gagal
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,48 +63,40 @@ class _LoginPageState extends State<LoginPage> {
               const CircleAvatar(
                 radius: 40,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.account_circle,
-                    size: 50, color: Color(0xFF4A0072)),
+                child: Icon(Icons.account_circle, size: 50, color: Color(0xFF4A0072)),
               ),
               const SizedBox(height: 20),
-
               const Text(
                 'Masukkan Email',
                 style: TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 8),
-              _input('Email', Icons.email),
-
+              _input('Email', Icons.email, _emailController),
               const SizedBox(height: 20),
-
               const Text(
                 'Masukkan Password',
                 style: TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 8),
               _password(),
-
               const SizedBox(height: 24),
-
               Row(
                 children: [
                   Expanded(
                     child: _button('Daftar', () {
                       Navigator.pushNamed(context, '/register');
-
                     }),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _button('Login', () {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    }),
+                    child: _button(
+                      _isLoading ? 'Loading...' : 'Login', 
+                      _isLoading ? () {} : login, // Cegah klik ganda saat loading
+                    ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'www.sahabatwarga.com',
                 style: TextStyle(color: Colors.white70),
@@ -75,8 +108,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _input(String hint, IconData icon) {
+  Widget _input(String hint, IconData icon, TextEditingController controller) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),
@@ -92,17 +126,14 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _password() {
     return TextField(
+      controller: _passwordController,
       obscureText: _obscure,
       decoration: InputDecoration(
         hintText: 'Password',
         prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
           icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-          onPressed: () {
-            setState(() {
-              _obscure = !_obscure;
-            });
-          },
+          onPressed: () => setState(() => _obscure = !_obscure),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -114,21 +145,16 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-Widget _button(String text, VoidCallback onTap) {
-  return ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF8E24AA),
-      foregroundColor: Colors.white, // ⬅️ WARNA TEKS
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ),
-    onPressed: onTap,
-    child: Text(
-      text,
-      style: const TextStyle(color: Colors.white),
-    ),
-  );
-}
-
+  Widget _button(String text, VoidCallback onTap) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF8E24AA),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      onPressed: onTap,
+      child: Text(text),
+    );
+  }
 }
